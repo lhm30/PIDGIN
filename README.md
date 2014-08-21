@@ -1,5 +1,5 @@
-PIDGIN : Prediction IncluDinG INactivity - 
-Version 1 
+PIDGIN : Prediction IncluDinG INactivity
+===========
 
 Author : Lewis Mervin, lhm30@cam.ac.uk
 
