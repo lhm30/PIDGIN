@@ -64,6 +64,8 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     
     where r would apply Thresholds calculated using the Recall metric
  
+==========================================================================================
+
  [1] http://scikit-learn.org/stable/
  [2] http://www.numpy.org
  [3] http://www.rdkit.org
