@@ -39,7 +39,7 @@ Follow these steps on Linux:
 Instructions:
 
 IMPORTANT:
-*	The program currently currently recognises line separated SMILES in .csv format
+*	The program currently recognises line separated SMILES in .csv format
 *	Molecules Should be standardized before running models
 *	ChemAxon is recommended and free for academic use at (http://www.chemaxon.com)
 *	Protocol used to standardise these molecules is provided: StandMoleProt.xml
