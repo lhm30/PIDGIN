@@ -50,8 +50,8 @@ Two different python scripts can be used when performing target prediction.
 Both utilise the Naive Bayes models created using Scikit-learn [1]. 
 
 
-1. ```predict.py filename.csv```
-    This script outputs only the raw probabilities for the compounds in a matrix. 
+1. ```predict_raw.py filename.csv```
+    This script outputs the raw Naive Bayes score probabilities for the compounds in a matrix. 
     
     Example of how to run the code:
 
@@ -72,6 +72,25 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     ```
     
     where r would apply Thresholds calculated using the Recall metric
+
+3. ```predict_binary_heat.py filename.csv```
+    This script generates binary predictions for the models using the thresholds, but does not output predictions for targets with no hits (this reduces the number of classes that one attempts to plot on a heat map)
+    
+    Example of how to run the code:
+
+    ```
+    python predict_binary_heat.py r input.csv
+    ```
+
+3. ```predict_single.py filename.csv```
+    This script generates outputs for the raw Naive Bayes score probabilities and the binary output for all the thresholds for a single compound (used to give more in depth analysis for single compounds)
+    
+    Example of how to run the code:
+
+    ```
+    python predict_single.py input.csv
+    ```
+
  
 ==========================================================================================
 
