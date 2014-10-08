@@ -73,7 +73,7 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     
     where r would apply Thresholds calculated using the Recall metric
 
-3. ```predict_binary_heat.py filename.csv```
+3. ```predict_binary_heat.py threshold filename.csv```
     This script generates binary predictions for the models using the thresholds, but does not output predictions for targets with no hits (this reduces the number of classes that one attempts to plot on a heat map)
     
     Example of how to run the code:
