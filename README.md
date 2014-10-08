@@ -56,7 +56,7 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     Example of how to run the code:
 
     ```
-    python predict.py input.csv
+    python predict_raw.py input.csv
     ```
 
 2. ```predict_binary.py theshold filename.csv```
