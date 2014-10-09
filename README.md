@@ -12,8 +12,8 @@ Molecular Descriptors : 2048bit Morgan Binary Fingerprints (Rdkit) - ECFP4
 * Targets: 1,080 Human Targets (activities over 10)
 * Bioactivities: 194,563,469
 * Distinct compounds: 826,354 (Based on binary fingerprints)
-* Disctinct Actives:	295,973
-* Disctinct Inactives:	648,930
+* Distinct Actives:	295,973
+* Distinct Inactives:	648,930
 * Number of classes requiring sphere exclusion:	480 (Ratio of less than 100:1 Inactive:Active)
 * Number of classes requiring under-sampling:	600 (Ratio of less than 100:1 Inactive:Active)
 
