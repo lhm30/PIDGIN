@@ -37,6 +37,16 @@ def calcFingerprints(smiles):
     fp = AllChem.GetMorganFingerprintAsBitVect(m1,2, nBits=2048)
     binary = fp.ToBitString()
     return list(binary) 
+    
+#get names of uniprots
+def getName():
+    global u_name
+    t_file = open('classes_in_model.txt').read().splitlines()
+    t_file.pop(0)
+    for t in t_file:
+        t = t.split('\t')
+        u_name[t[1]] = t[0]
+    return
 
 #import thresholds as specified by user    
 def importThresholds():
@@ -56,6 +66,7 @@ def importThresholds():
     for t in t_file:
         t = t.split('\t')
         thresholds[t[0]] = float(t[m])
+    return
 
 
 #main
@@ -69,6 +80,8 @@ output_name = 'out_results_binary_heat.txt'
 file = open(output_name, 'w')
 thresholds = dict()
 importThresholds()
+u_name = dict()
+getName()
 querymatrix = importQuery()
 print ' Total Number of Query Molecules : ' + str(len(querymatrix))
 
@@ -79,7 +92,7 @@ for filename in glob.glob('models/*.pkl'):
     count +=1
     #unpickle model
     with open(filename, 'rb') as fid:
-        row = [filename[7:-4]]
+        row = [u_name[filename[7:-4]],filename[7:-4]]
         bnb = cPickle.load(fid)
         probs = bnb.predict_proba(querymatrix)
         for prob in probs:

@@ -38,6 +38,16 @@ def calcFingerprints(smiles):
     binary = fp.ToBitString()
     return list(binary) 
 
+#get names of uniprots
+def getName():
+    global u_name
+    t_file = open('classes_in_model.txt').read().splitlines()
+    t_file.pop(0)
+    for t in t_file:
+        t = t.split('\t')
+        u_name[t[1]] = t[0]
+    return
+
 #import thresholds as specified by user    
 def importThresholds(uniprot):
     t_file = open('thresholds.txt').read().splitlines()
@@ -53,11 +63,13 @@ introMessage()
 file_name = sys.argv[1]
 t_count = len(glob.glob('models/*.pkl'))
 print ' Total Number of Classes : ' + str(t_count)
-output_name = 'single_out_result.txt'
+output_name = 'out_result_single.txt'
 file = open(output_name, 'w')
 querymatrix = importQuery()
+u_name = dict()
+getName()
 print ' Query Molecule : ' + file_name
-file.write('UNIPROT\tRAW_SCORE\tPrecision\tF_Score\tRecall\tAccuracy\t0.5\n')
+file.write('NAME\tUNIPROT\tRAW_SCORE\tPRECISION\tF_SCORE\tRECALL\tACCURACY\t0.5\n')
 
 count=0
 #for each model
@@ -66,7 +78,7 @@ for filename in glob.glob('models/*.pkl'):
     count +=1
     #unpickle model
     with open(filename, 'rb') as fid:
-        row = [filename[7:-4]]
+        row = [u_name[filename[7:-4]],filename[7:-4]]
         bnb = cPickle.load(fid)
         prob = bnb.predict_proba(querymatrix)[0][1]
         row.append(prob)
