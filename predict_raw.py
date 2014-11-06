@@ -16,7 +16,7 @@ import sys
 import numpy as np
 
 def introMessage():
-    print '\n=============================================================================================='
+    print '=============================================================================================='
     print ' Author: Lewis Mervin\n Email:  lhm30@cam.ac.uk\n Supervisor: Dr. A. Bender'
     print ' Address: Centre For Molecular Informatics, Dept. Chemistry, Lensfield Road, Cambridge CB2 1EW'
     print '==============================================================================================\n'
@@ -24,20 +24,29 @@ def introMessage():
 
 #import user query
 def importQuery():
-	query = open(file_name).read().splitlines()
-	matrix = []
-	for q in query:
-		matrix.append(calcFingerprints(q))
-	matrix = np.array(matrix, dtype=np.uint8)
-	return matrix
-	
+    query = open(file_name).read().splitlines()
+    matrix = []
+    for q in query:
+        matrix.append(calcFingerprints(q))
+    matrix = np.array(matrix, dtype=np.uint8)
+    return matrix
+    
 #calculate 2048bit morgan fingerprints, radius 2
 def calcFingerprints(smiles):
     m1 = Chem.MolFromSmiles(smiles)
     fp = AllChem.GetMorganFingerprintAsBitVect(m1,2, nBits=2048)
     binary = fp.ToBitString()
     return list(binary) 
-
+    
+#get names of uniprots
+def getName():
+    global u_name
+    t_file = open('classes_in_model.txt').read().splitlines()
+    t_file.pop(0)
+    for t in t_file:
+        t = t.split('\t')
+        u_name[t[1]] = t[0]
+    return
 
 #main
 introMessage()
@@ -47,6 +56,8 @@ print 'Total Number of Classes : ' + str(t_count)
 output_name = 'out_results.txt'
 file = open(output_name, 'w')
 querymatrix = importQuery()
+u_name = dict()
+getName()
 print 'Total Number of Query Molecules : ' + str(len(querymatrix))
 
 count=0
@@ -57,7 +68,7 @@ for filename in glob.glob('models/*.pkl'):
     with open(filename, 'rb') as fid:
         bnb = cPickle.load(fid)
         probs = bnb.predict_proba(querymatrix)
-        row = [filename[7:-4]]
+        row = [u_name[filename[7:-4]],filename[7:-4]]
         for prob in probs:
             row.append(prob[1])
         file.write('\t'.join(map(str,row)) + '\n')
