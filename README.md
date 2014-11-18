@@ -82,7 +82,7 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     python predict_binary_heat.py r input.csv
     ```
 
-3. ```predict_single.py filename.csv```
+4. ```predict_single.py filename.csv```
     This script generates outputs for the raw Naive Bayes score probabilities and the binary output for all the thresholds for a single compound (used to give more in depth analysis for single compounds)
     
     Example of how to run the code:
@@ -90,8 +90,34 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     ```
     python predict_single.py input.csv
     ```
+    
 
- 
+================
+* PIDGIN now offers predictions excluding inactivity.
+
+* The predictions produced for this activity-only model reflect the probability that a compound is active for a given target class, when considering the probability of activity for the other activity classes. 
+
+* The model and scripts to use this single model are found in the 'singlemodel' folder.
+
+5. ```predict_singlemodel.py filename.csv```
+    This script generates raw Naive Bayes score probabilities for compounds when cosidering only activity information.
+    
+    Example of how to run the code:
+
+    ```
+    python predict_singlemodel.py input.csv
+    ```
+
+6. ```predict_singlemodel_ranked.py filename.csv```
+    This script generates raw Naive Bayes score probabilities for a single compound when cosidering only activity information.
+    
+    Example of how to run the code:
+
+    ```
+    python predict_singlemodel_ranked.py input.csv
+    ```
+
+
 ==========================================================================================
 
  [1] http://scikit-learn.org/stable/
