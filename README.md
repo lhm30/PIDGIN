@@ -100,7 +100,7 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
 * The model and scripts to use this single model are found in the 'singlemodel' folder.
 
 5. ```predict_singlemodel.py filename.csv```
-    This script generates raw Naive Bayes score probabilities for compounds when cosidering only activity information.
+    This script generates raw Naive Bayes score probabilities for compounds (this only considers activity information).
     
     Example of how to run the code:
 
@@ -108,15 +108,14 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     python predict_singlemodel.py input.csv
     ```
 
-6. ```predict_singlemodel_ranked.py filename.csv```
-    This script generates raw Naive Bayes score probabilities for a single compound when cosidering only activity information.
+6. ```predict_singlemodel_ranked_number.py filename.csv```
+    This script outputs the ranking for targets from compound libraries based on the raw Naive Bayes score probabilities. The final column includes the average ranking position for target classes given the input compounds (this only considers activity information).
     
     Example of how to run the code:
 
     ```
-    python predict_singlemodel_ranked.py input.csv
+    python predict_singlemodel_ranked_number.py input.csv
     ```
-
 
 ==========================================================================================
 
