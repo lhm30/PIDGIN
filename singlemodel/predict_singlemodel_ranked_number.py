@@ -29,9 +29,6 @@ def importQuery():
 	for q in query:
 		matrix.append(calcFingerprints(q))
 	matrix = np.array(matrix, dtype=np.uint8)
-	if len(matrix) > 1:
-		print 'Error: Too many compounds, please supply a single compound'
-		exit()
 	return matrix
 	
 #calculate 2048bit morgan fingerprints, radius 2
@@ -56,28 +53,28 @@ def getName():
 #main
 introMessage()
 file_name = sys.argv[1]
-output_name = 'out_results_singlemodel_ranked.txt'
+output_name = 'out_results_singlemodel_ranked_number.txt'
 file = open(output_name, 'w')
 querymatrix = importQuery()
 u_name = dict()
 uniprots = getName()
-write_row = []
 print 'Importing Model'
 with open('onemodel.pkl', 'rb') as fid:
 	bnb = cPickle.load(fid)
+print 'Total Number of Query Molecules : ' + str(len(querymatrix))
 print 'Number of Targets in Model : ' + str(len(bnb.class_count_))
 probs = bnb.predict_proba(querymatrix)
 for i in range(len(uniprots)):
 	row = [u_name[uniprots[i]],uniprots[i]]
 	for prob in probs:
-		row.append(prob[i])
-	write_row.append(row)
+		order = prob.argsort()
+		ranks = order[::-1].argsort()
+		row.append(ranks[i]+1)
+	row.append("%.2f" % np.average(row[2:]))
+	file.write('\t'.join(map(str,row)) + '\n')
 	#update precent finished
 	percent = (float(i)/float(len(uniprots)))*100
 	sys.stdout.write('Performing Classification on Query Molecules: %3d%%\r' % percent)
 	sys.stdout.flush()
-write_row = sorted(write_row, key=lambda x: x[2], reverse=True)
-for r in write_row:
-	file.write('\t'.join(map(str,r)) + '\n')
 print '\nWrote Results to: ' + output_name
 file.close()
