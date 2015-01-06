@@ -34,6 +34,8 @@ def importQuery():
 #calculate 2048bit morgan fingerprints, radius 2
 def calcFingerprints(smiles):
     m1 = Chem.MolFromSmiles(smiles)
+    if m1 is None:
+    	print smiles
     fp = AllChem.GetMorganFingerprintAsBitVect(m1,2, nBits=2048)
     binary = fp.ToBitString()
     return list(binary) 
@@ -91,7 +93,10 @@ ranks = np.array(ranks, dtype = np.uint16)
 ranksav = np.array([(np.average(ranks, axis =0))])
 matrix = np.concatenate((firstcols, ranks.T), axis=1)
 matrix = np.concatenate((matrix, ranksav.T), axis=1)
-
+headings = ['Name','Uniprot']
+for i in range(len(querymatrix)):
+	headings.append("C"+str(i+1))
+file.write('\t'.join(headings) + '\tAverage\n')
 for row in matrix:
 	file.write('\t'.join(map(str,row)) + '\n')
 sys.stdout.write('Wrote Results to: ' + output_name + 20*' ')
