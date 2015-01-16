@@ -6,6 +6,7 @@ Author : Lewis Mervin, lhm30@cam.ac.uk
 Supervisor : Dr. A. Bender
 
 Protein Target Prediction Tool trained on SARs from PubChem (Mined 08/04/14) and ChEMBL18
+![](https://pubchem.ncbi.nlm.nih.gov/images/pubchemlogob.gif) ![](http://upload.wikimedia.org/wikipedia/commons/a/a1/Chembl_logo.png)
 
 Molecular Descriptors : 2048bit Morgan Binary Fingerprints (Rdkit) - ECFP4
 
@@ -19,6 +20,8 @@ Molecular Descriptors : 2048bit Morgan Binary Fingerprints (Rdkit) - ECFP4
 
 
 Dependencies : rdkit, sklearn, numpy
+
+![](http://www.rdkit.org/Images/logo.png) ![](http://scikit-learn.org/stable/_static/scikit-learn-logo-small.png) ![](http://upload.wikimedia.org/wikipedia/ru/c/cc/Numpylogo.png)
 
 ChemAxon Standardizer was used for structure canonicalization and transformation, JChem 6.0.2.
 
