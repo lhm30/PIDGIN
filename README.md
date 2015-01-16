@@ -101,6 +101,16 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     ```
     
 
+5. ```predict_ranked.py filename.csv```
+    This script generates ranked targets (based on the raw Naive Bayes score probabilities) for compounds. The final column includes the average ranking position for target classes given the input compounds.
+    
+    Example of how to run the code:
+
+    ```
+    python predict_ranked.py input.csv
+    ```
+    
+    
 ================
 * PIDGIN now offers predictions excluding inactivity.
 
