@@ -111,8 +111,8 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     ```
     
     
-================
-* PIDGIN now offers predictions excluding inactivity.
+===========
+PIDGIN now offers predictions excluding inactivity.
 
 * The predictions produced for this activity-only model reflect the probability that a compound is active for a given target class, when considering the probability of activity for the other activity classes. 
 
