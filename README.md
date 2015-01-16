@@ -27,6 +27,8 @@ ChemAxon Standardizer was used for structure canonicalization and transformation
 
 ![](http://www.chemaxon.com/images/powered_100px.gif)  http://www.chemaxon.com
 
+![](http://www.ebi.ac.uk/sites/ebi.ac.uk/files/field/image/logo_5.gif)
+
 
 All rights reserved 2014
 ==========================================================================================
