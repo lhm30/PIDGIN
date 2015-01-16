@@ -20,6 +20,10 @@ Molecular Descriptors : 2048bit Morgan Binary Fingerprints (Rdkit) - ECFP4
 
 Dependencies : rdkit, sklearn, numpy
 
+ChemAxon Standardizer was used for structure canonicalization and transformation, JChem 6.0.2.
+
+![](http://www.chemaxon.com/images/powered_100px.gif)  http://www.chemaxon.com
+
 
 All rights reserved 2014
 ==========================================================================================
