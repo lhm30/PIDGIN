@@ -12,19 +12,18 @@ import pymysql
 import getpass
 
 def login():
-    user = raw_input(" Enter Username for PIDGIN DB [%s]: " % getpass.getuser())
+    user = raw_input("Enter Username for PIDGIN DB [%s]: " % getpass.getuser())
     if not user:
         user = getpass.getuser()
 
-    pprompt = lambda: (getpass.getpass(), getpass.getpass(' Retype password: '))
+    pprompt = lambda: (getpass.getpass(), getpass.getpass('Retype password: '))
 
     p1, p2 = pprompt()
     while p1 != p2:
-        print(' Passwords do not match. Try again')
+        print('Passwords do not match. Try again')
         p1, p2 = pprompt()
-    samples = raw_input(" Enter Number of Samples: ")
 
-    return user, p1, int(samples)
+    return user, p1
 	
 def calcNormalFingerprints(smiles):
 	m1 = Chem.MolFromSmiles(smiles)
