@@ -92,7 +92,7 @@ for filename in glob.glob('models/*.pkl'):
         file.write('\t'.join(map(str,row)) + '\n')
     #update precent finished
     percent = (float(count)/float(t_count))*100
-    sys.stdout.write(' Performing Classification on Query Molecules: %3d%%\r' % percent)
+    sys.stdout.write(' Performing Classification on Query Molecule: %3d%%\r' % percent)
     sys.stdout.flush()
 print '\n Wrote Results to: ' + output_name
 file.close()
