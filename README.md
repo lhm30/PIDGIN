@@ -1,5 +1,7 @@
 PIDGIN : Prediction IncluDinG INactivity
 ===========
+[![DOI](https://zenodo.org/badge/10824/lhm30/PIDGIN.svg)](http://dx.doi.org/10.5281/zenodo.15984)
+
 
 Author : Lewis Mervin, lhm30@cam.ac.uk
 
