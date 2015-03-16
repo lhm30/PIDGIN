@@ -91,8 +91,8 @@ def importThresholds():
 	
 def getRandomFP(needed):
 	global usr, pw
-    conn = pymysql.connect(db='pidgin', user=usr, passwd=pw, host='localhost', port=3306)
-    cur = conn.cursor()
+	conn = pymysql.connect(db='pidgin', user=usr, passwd=pw, host='localhost', port=3306)
+	cur = conn.cursor()
 	#cur.execute("SELECT stdsmiles FROM compounds limit "+str(needed)+";")
 	cur.execute("SELECT stdsmiles FROM compounds WHERE RAND(12)<(SELECT (("+str(needed)+"/COUNT(*))*10) FROM compounds) ORDER BY RAND(12) LIMIT "+str(needed)+";")
         #cur.execute("SELECT stdsmiles FROM compounds ORDER BY RAND(123) LIMIT "+str(needed)+";")
