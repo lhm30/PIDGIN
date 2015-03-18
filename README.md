@@ -52,7 +52,7 @@ Instructions:
 IMPORTANT:
 *	The program currently recognises line separated SMILES in .csv format
 *	Molecules Should be standardized before running models
-*	ChemAxon is recommended and free for academic use at (http://www.chemaxon.com)
+*	ChemAxon Standardizer should be used for structure canonicalization and is free for academic use at (http://www.chemaxon.com)
 *	Protocol used to standardise these molecules is provided: StandMoleProt.xml
 *	Do not modify the 'models' name or directory 
 *	Cytotoxicity_library.csv is included for use as example dataset for test data
