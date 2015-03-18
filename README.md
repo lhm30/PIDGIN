@@ -112,6 +112,13 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     python predict_ranked.py input.csv
     ```
     
+5. ```predict_enriched_targets.py threshold filename.csv```
+    This script enriched targets for a library of compounds, when compared to a background sample from PubChem. The script will ask for login details for MySQL on Calculon, and the number of background samples to compare the library.
+    
+    Example of how to run the code:
+
+    ```
+    python predict_ranked.py input.csv
     
 ===========
 PIDGIN now offers predictions excluding inactivity.
