@@ -118,7 +118,9 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     Example of how to run the code:
 
     ```
-    python predict_ranked.py input.csv
+    python predict_enriched_targets.py threshold input.csv
+    ```
+    
     
 ===========
 PIDGIN now offers predictions excluding inactivity.
