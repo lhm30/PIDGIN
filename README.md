@@ -121,7 +121,7 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     Example of how to run the code:
 
     ```
-    python predict_enriched_targets.py threshold input.csv
+    python predict_enriched.py threshold input.csv
     ```
     
 7. ```predict_enriched_two_libraries.py threshold input_active_library.csv input_inactive_library.csv```
