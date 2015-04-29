@@ -116,7 +116,7 @@ def getRandomFP(needed):
 	cur = conn.cursor()
 	cur.execute("SELECT stdsmiles FROM compounds WHERE RAND(12)<(SELECT (("+str(needed)+"/COUNT(*))*10) FROM compounds) ORDER BY RAND(12) LIMIT "+str(needed)+";")
 	smiles = cur.fetchall()
-	print ' Number of BG mols : ' + str(len(smiles)) + ' ' * 35
+	print ' Number of BG mols : ' + str(len(smiles)) + ' ' * 45
 	return chunks(smiles, len(querymatrix))
 	
 #get names of uniprots
