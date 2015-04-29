@@ -20,6 +20,9 @@ Molecular Descriptors : 2048bit Morgan Binary Fingerprints (Rdkit) - ECFP4
 * Number of classes requiring sphere exclusion:	480 (Ratio of less than 100:1 Inactive:Active)
 * Number of classes requiring under-sampling:	600 (Ratio of less than 100:1 Inactive:Active)
 
+Pathway information from NCBI BioSystems
+
+![](http://www.ncbi.nlm.nih.gov/Structure/IMG/banner_graphics/biosystems_entrez3.png) ![](http://www.genome.jp/Fig/kegg128.gif) ![](http://biocyc.org/BioCyc.gif) ![](http://blog.openhelix.eu/wp-content/uploads/2011/01/Reactome_logo.jpg) ![](http://i.picresize.com/images/2015/04/29/oAE7h.png) ![](https://s-media-cache-ak0.pinimg.com/216x146/e3/71/2d/e3712dd81b80c17e24d4fb529f6bafab.jpg) ![](http://www.wikipathways.org/skins/common/images/earth-or-pathway_text3_beta.png)
 
 Dependencies : rdkit, sklearn, numpy
 
@@ -29,7 +32,7 @@ ChemAxon Standardizer was used for structure canonicalization and transformation
 
 ![](http://www.chemaxon.com/images/powered_100px.gif)  http://www.chemaxon.com
 
-![](http://www.ebi.ac.uk/sites/ebi.ac.uk/files/field/image/logo_5.gif)
+![](https://dnasu.org/DNASU/image/Uniprot300.jpg)
 
 
 All rights reserved 2014
@@ -112,8 +115,8 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     python predict_ranked.py input.csv
     ```
     
-6. ```predict_enriched_targets.py threshold filename.csv```
-    This script enriched targets for a library of compounds, when compared to a background sample from PubChem. The script will ask for login details for MySQL on Calculon, and the number of background samples to compare the library.
+6. ```predict_enriched.py threshold filename.csv```
+    This script enriched targets and pathways for a library of compounds, when compared to a background sample from PubChem. The script will ask for login details for MySQL on Calculon, and the number of background samples to compare the library. The script will live access the NCBI BioSystems repository for up-to-date pathways information.
     
     Example of how to run the code:
 
@@ -122,7 +125,7 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     ```
     
 7. ```predict_enriched_two_libraries.py threshold input_active_library.csv input_inactive_library.csv```
-    This script enriched targets for a library of phenotypically active compounds compared to phenotypically inactive compounds.
+    This script enriched targets and pathways for a library of phenotypically active compounds compared to phenotypically inactive compounds.
     
     Example of how to run the code:
 
@@ -132,7 +135,7 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     
     
 ===========
-PIDGIN now offers predictions excluding inactivity.
+PIDGIN also offers predictions considering only activity.
 ===========
 
 * The predictions produced for this activity-only model reflect the probability that a compound is active for a given target class, when considering the probability of activity for the other activity classes. 
