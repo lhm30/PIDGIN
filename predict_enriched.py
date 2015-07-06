@@ -61,29 +61,28 @@ def importQuery(name):
 	matrix = []
 	problem = 0
 	for q in query:
-		fp = calcFingerprints(q)
-		if fp == None: 
+		try:
+			fp = calcFingerprints(q)
+			gc.disable()
+			matrix.append(fp)
+			gc.enable()
+		except:
 			problem +=1
 			outproblem.write(q + '\n')
-			continue
-		gc.disable()
-		matrix.append(fp)
-		gc.enable()
 	matrix = np.array(matrix, dtype=np.uint8)
-	if problem != 0:
+	if problem > 0:
 		print 'WARNING: ' + str(problem) + ' SMILES HAVE ERRORS'
-		file.close()
+		outproblem.close()
 	else:
+		outproblem.close()
 		os.remove('problematic_smiles.smi')
 	return matrix
 	
 #calculate 2048bit morgan fingerprints, radius 2
 def calcFingerprints(smiles):
-	try:
-		m1 = Chem.MolFromSmiles(smiles)
-		fp = AllChem.GetMorganFingerprintAsBitVect(m1,2, nBits=2048)
-		binary = fp.ToBitString()
-	except: return None
+	m1 = Chem.MolFromSmiles(smiles)
+	fp = AllChem.GetMorganFingerprintAsBitVect(m1,2, nBits=2048)
+	binary = fp.ToBitString()
 	return list(binary)
 	
 def arrayFP(input):
