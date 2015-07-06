@@ -11,29 +11,20 @@ import random
 import time
 import getpass
 random.seed(2)
-from functools import wraps
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from sklearn.naive_bayes import BernoulliNB
 import cPickle
 import glob
-from lxml import etree as ET
+import gc
 from collections import Counter
 import os
 import sys
-import urllib2
-import socket
 import numpy as np
 from multiprocessing import Pool
 import multiprocessing
 multiprocessing.freeze_support()
-N_cores = 25
-socket.setdefaulttimeout(400)
-opener = urllib2.build_opener()
-opener.addheaders = [('User-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) AppleWebKit/536.30.1 (KHTML, like Gecko) Version/6.0.5 Safari/536.30.1')]
-opener.addheaders = [('Connection', 'keep-alive')]
-opener.addheaders = [('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')]
-opener.addheaders = [('Accept-Language', 'en-us')]
+N_cores = 10
 
 def introMessage():
 	print '=============================================================================================='
@@ -42,33 +33,8 @@ def introMessage():
 	print '==============================================================================================\n'
 	return
 
-def retry(ExceptionToCheck, tries=20, delay=3, backoff=4, logger=None):
-	def deco_retry(f):
-		@wraps(f)
-		def f_retry(*args, **kwargs):
-			mtries, mdelay = tries, delay
-			while mtries > 1:
-				try:
-					return f(*args, **kwargs)
-				except ExceptionToCheck, e:
-					msg = time.ctime() + " %s, Retrying in %d seconds...\n" % (str(e), mdelay)
-					if logger:
-						logger.warning(msg)
-					else:
-						print msg
-					mtries -= 1
-					mdelay *= backoff
-			return f(*args, **kwargs)
-		return f_retry
-	return deco_retry
-
-#attach retry decorator for GET links
-@retry(Exception)
-def urlopen_with_retry(url): 
-	return opener.open(url, timeout=15).read()
-
 def login():
-	user = raw_input(" Enter Username for PIDGIN DB [%s]: " % getpass.getuser())
+	user = raw_input(" Enter Username for PIDGIN & BIOSYSTEMS DB [%s]: " % getpass.getuser())
 	if not user:
 		user = getpass.getuser()
 
@@ -90,24 +56,42 @@ def printprog(size,count,message):
 
 #import user query
 def importQuery(name):
+	outproblem = open('problematic_smiles.smi','w')
 	query = open(name).read().splitlines()
 	matrix = []
+	problem = 0
 	for q in query:
-		matrix.append(calcFingerprints(q))
+		fp = calcFingerprints(q)
+		if fp == None: 
+			problem +=1
+			outproblem.write(q + '\n')
+			continue
+		gc.disable()
+		matrix.append(fp)
+		gc.enable()
 	matrix = np.array(matrix, dtype=np.uint8)
+	if problem != 0:
+		print 'WARNING: ' + str(problem) + ' SMILES HAVE ERRORS'
+		file.close()
+	else:
+		os.remove('problematic_smiles.smi')
 	return matrix
 	
 #calculate 2048bit morgan fingerprints, radius 2
 def calcFingerprints(smiles):
-	m1 = Chem.MolFromSmiles(smiles)
-	fp = AllChem.GetMorganFingerprintAsBitVect(m1,2, nBits=2048)
-	binary = fp.ToBitString()
+	try:
+		m1 = Chem.MolFromSmiles(smiles)
+		fp = AllChem.GetMorganFingerprintAsBitVect(m1,2, nBits=2048)
+		binary = fp.ToBitString()
+	except: return None
 	return list(binary)
 	
 def arrayFP(input):
 	outfp = []
 	for i in input:
+		gc.disable()
 		outfp.append(calcFingerprints(i[0]))
+		gc.enable()
 	return np.array(outfp, dtype=np.uint8)
 
 def getRandomFP(needed):
@@ -133,6 +117,7 @@ def getUpName():
 def importThresholds():
 	global thresholds
 	global metric
+	m = None
 	if metric == 'p':
 		m = 1	
 	if metric == 'f':
@@ -143,6 +128,9 @@ def importThresholds():
 		m = 4
 	if metric == '0.5':
 		m = 5
+	if m is None:
+		print ' ERROR: Please enter threshold!'
+		quit()
 	t_file = open('thresholds.txt').read().splitlines()
 	for t in t_file:
 		t = t.split('\t')
@@ -161,25 +149,36 @@ def trainModels():
 	pool.close()
 	pool.join()
 	return models
-	
+			
 #trainer worker	
 def trainer(x):
 	with open(x, 'rb') as fid:
 			loaded = cPickle.load(fid)
 	return [x[7:-4], loaded]
 
+def getPW():
+	global models
+	bsid_a = dict()
+	conn = pymysql.connect(db='biosystems', user=usr, passwd=pw, host='localhost', port=3306)
+	cur = conn.cursor()
+	for m in models.keys():
+		cur.execute("SELECT bsid FROM target_bsid WHERE target ='"+str(m)+"';")
+		bsids = np.array(cur.fetchall(),dtype=int)
+		try:
+			bsid_a[m] = bsids[::,0]
+		except IndexError:
+			bsid_a[m] = []
+	return bsid_a
+
 #predict worker
 def predict(x):
 	global models
+	global thresholds
 	mod, input = x
-	results = dict()	
 	hits = 0
-	probs = models[mod].predict_proba(input)
-	for prob in probs:
-		#if the probability of activity is above threshold then active
-		if prob[1] >= thresholds[mod]:
-			hits+=1
-	return [mod, hits]
+	probs = models[mod].predict_proba(input)[::,1]
+	hits = probs > [thresholds[mod]]*len(probs)
+	return [mod, hits.sum()]
 
 #chunk random fp into jobs
 def chunks(l, n):
@@ -188,22 +187,26 @@ def chunks(l, n):
 
 #calculate enriched target metrics and calculate background pw array
 def calculateEnrichmentT(poolcomp):
-	global positives
 	global bsid_a
+	global positives
 	lwin = dict((el,0) for el in positives.keys())
 	avr = dict((el,0) for el in positives.keys())
 	bgpw = []
 	for i, slice in enumerate(poolcomp):
 		printprog(samples,i,' Calculating Enriched Targets vs BG ')
-		pw = []
+		pw = dict()
 		selected = arrayFP(slice)
 		pool = Pool(processes=N_cores)  # set up resources
 		background_prediction_tasks = [[mod, selected] for mod in models.keys()] #create queue
 		jobs = pool.imap_unordered(predict, background_prediction_tasks)
 		for i, result in enumerate(jobs):
 			unip, hits = result
-			if hits > 0:
-				pw = pw + (bsid_a[unip] * hits)
+			if hits > 1:
+				for b in bsid_a[unip]:
+					try:
+						pw[b] += hits
+					except KeyError:
+						pw[b] = hits
 			#update count of hits for target (for average-ratio)
 			avr[unip] = avr[unip] + hits
 			#update times that query was larger than background (for e-ratio)
@@ -216,32 +219,30 @@ def calculateEnrichmentT(poolcomp):
 	
 def calculateEnrichmentPW():
 	global positivespw
-	global bgpw
 	lwin = dict()
 	avr = dict()
 	pool = Pool(processes=N_cores)  # set up resources
 	tasks = [[bsid, count] for bsid, count in positivespw.items()] #create queue
-	jobs = pool.imap_unordered(process, tasks)
+	jobs = pool.imap_unordered(processPW, tasks)
 	for i, result in enumerate(jobs):
-		printprog(len(tasks),i,' Calculating Enriched PW vs BG')
 		lwin[result[0]]= result[1]
 		avr[result[0]]= result[2]
 	aratiopw = calcAR(avr,positivespw)
 	return lwin,avr,aratiopw
 	
-def process(input):
+def processPW(input):
 	global bgpw
 	lwin = 0
 	avr = 0
 	bsid, count = input
 	for split in bgpw:
-		split = Counter(split)
 		try:
-			if count > split[bsid]:
-				lwin +=1
-			avr = avr + split[bsid]
-		except KeyError:
+			split = split[bsid]
+		except:
+			split = 0
+		if count > split:
 			lwin +=1
+		avr = avr + split
 	return [bsid,lwin,avr]
 	
 #calculate enrichment
@@ -262,35 +263,6 @@ def calcAR(avr,positiv):
 			if positiv[annotation] == 0.0:
 				aratio[annotation] = 999.0
 	return aratio	
-
-def getBSID(term):
-	bsidlist = []
-	#send bsid term to esearch
-	url = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=biosystems&term=' + term + '&retmode=xml&RetMax=500'
-	response = urlopen_with_retry(url)
-	root = ET.fromstring(response)
-	#search the xml for the gids
-	for information in root.findall('IdList'):
-		for bsids in information.findall('Id'):
-			bsid=(bsids.text)
-			bsidlist.append(bsid)
-	#remove duplicates
-	bsidlist = list(set(bsidlist))
-	return bsidlist
-	
-def getBSIDname(bsids):
-	BSID_n = dict()
-	#send bsid term to esearch
-	chunks = [bsids[x:x+120] for x in xrange(0, len(bsids), 120)]
-	for chunk in chunks:
-		url = 'http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=biosystems&id=' + ','.join(map(str,chunk))
-		response = urlopen_with_retry(url)
-		root = ET.fromstring(response)
-		ids = root.xpath('//Id')
-		info = [root.xpath('//Item[@Name="biosystemname"]'), root.xpath('//Item[@Name="externalid"]')]
-		for i, id in enumerate(ids):
-			BSID_n[(id.text)] = [info[0][i].text, info[1][i].text]
-	return BSID_n
 	
 #main
 introMessage()
@@ -304,27 +276,31 @@ output_name, output_name2 = ['out_targets_enriched.txt', 'out_pathways_enriched.
 models = trainModels()
 u_name = dict()
 getUpName()
+bsid_a = getPW()
 t_count = len(models.keys())
 print ' Total Number of Classes : ' + str(t_count)
 querymatrix = importQuery(file_name)
 print ' Total Number of Library Molecules : ' + str(len(querymatrix))
 
+
 positives = dict()
-positivespw = []
-bsid_a = dict()
+positivespw = dict()
 pool = Pool(processes=N_cores)  # set up resources
 test_prediction_tasks = [[mod, querymatrix] for mod in models.keys()] #create queue
 jobs = pool.imap_unordered(predict, test_prediction_tasks)
 for i, result in enumerate(jobs):
+	mod, hit = result
 	printprog(len(test_prediction_tasks),i,' Calculating Targets and Pathways for ' + file_name)
-	bsid_a[result[0]] = getBSID(result[0])
-	positives[result[0]] = result[1]
+	positives[mod] = hit
 	#update list of hit pw
-	if result[1] > 0:
-		positivespw = positivespw + (bsid_a[result[0]] * result[1])
+	if hit > 1:
+		for b in bsid_a[mod]:
+			try:
+				positivespw[b] += hit
+			except KeyError:
+				positivespw[b] = hit
 pool.close()
 pool.join()
-positivespw = Counter(positivespw)
 
 #import background db
 poolcomp = getRandomFP(samples*len(querymatrix))
@@ -336,22 +312,23 @@ numpreds = float(len(querymatrix))
 
 #write to target file
 file = open(output_name, 'w')
-file.write('uniprot\tname\tquery_hits\tenriched_count\te_score\tbg_rate\taverage_ratio\n')
+file.write('uniprot\tname\tquery_hits\te_score\taverage_ratio\n')
 for uniprot, hit in positives.items():
-	file.write(uniprot + '\t' + u_name[uniprot]  + '\t' +  str(hit)  + '\t' +  str(lwin[uniprot])  + '\t' + str(1.0-(float(lwin[uniprot])/float(samples))) + '\t' + str(float(avr[uniprot])) + '\t' + str(aratio[uniprot]) + '\n')
+	if hit >=1:
+		file.write(uniprot + '\t' + u_name[uniprot]  + '\t' +  str(hit)  + '\t' + str(1.0-(float(lwin[uniprot])/float(samples))) + '\t' + str(aratio[uniprot]) + '\n')
 print '\n Wrote Target Results to : ' + output_name
 file.close()
 	
 #write to pw file
 file = open(output_name2, 'w')
-file.write('bsid\tname\torigin\tquery_hits\tenriched_count\te_score\tbg_rate\taverage_ratio\n')
+file.write('bsid\tname\tdatabase\texternal_id\tclass\tquery_hits\te_score\taverage_ratio\n')
 lwin, avr, aratiopw = calculateEnrichmentPW()
-BSID_n = getBSIDname(positivespw.keys())
-count = 0
+conn = pymysql.connect(db='biosystems', user=usr, passwd=pw, host='localhost', port=3306)
+cur = conn.cursor()
 for bsid, count in positivespw.items():
-	count +=1
-	printprog(count,i,' Writing Pathways to file ' + file_name)
-	file.write(str(bsid) + '\t' + '\t'.join(map(str,BSID_n[bsid]))  + '\t' +  str(count)  + '\t' +  str(lwin[bsid])  + '\t' + str(1.0-(float(lwin[bsid])/float(samples))) + '\t' + str(float(avr[bsid])) + '\t' + str(aratiopw[bsid]) + '\n')
-print ' Wrote Pathway Results to : ' + output_name
+	cur.execute("SELECT * FROM bsid_info WHERE bsid ='"+str(bsid)+"';")
+	BSID_n = cur.fetchall()[0]
+	file.write('\t'.join(map(str,BSID_n))  + '\t' +  str(count)  + '\t' + str(1.0-(float(lwin[bsid])/float(samples))) + '\t' + str(aratiopw[bsid]) + '\n')
+print ' Wrote Pathway Results to : ' + output_name2
 file.close()
 
