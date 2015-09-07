@@ -47,6 +47,14 @@ def login():
 	samples = raw_input(" Enter Number of Samples: ")
 
 	return user, p1, int(samples)
+	
+def ispwneeded():
+	msg = " Calculate Pathway Enrichment from BioSystems? [y/n]: "
+	pwneeded = raw_input(msg)
+	while pwneeded not in ['y','n']:
+		print(' Please type y for yes, or n for no. Try again')
+		pwneeded = raw_input(msg)
+	return pwneeded
 
 def printprog(size,count,message):
 	count = count+1
@@ -93,14 +101,19 @@ def arrayFP(input):
 		gc.enable()
 	return np.array(outfp, dtype=np.uint8)
 
-def getRandomFP(needed):
+def getRandomCompoundPredictions(needed):
 	global usr, pw
+	global metric
 	conn = pymysql.connect(db='pidgin', user=usr, passwd=pw, host='localhost', port=3306)
 	cur = conn.cursor()
-	cur.execute("SELECT stdsmiles FROM compounds WHERE RAND(12)<(SELECT (("+str(needed)+"/COUNT(*))*10) FROM compounds) ORDER BY RAND(12) LIMIT "+str(needed)+";")
-	smiles = cur.fetchall()
-	print ' Number of BG mols : ' + str(len(smiles)) + ' ' * 45
-	return chunks(smiles, len(querymatrix))
+	cur.execute("SELECT "+metric+" FROM preds;")
+	preds = cur.fetchall()
+	try:
+	 	bgpred = random.sample(preds,needed)
+	except ValueError:
+		bgpred = [random.choice(preds) for _ in range(needed)]
+	print ' Number of BG mols : ' + str(len(bgpred)) + ' ' * 45
+	return np.reshape(bgpred, (samples,len(querymatrix)))
 	
 #get names of uniprots
 def getUpName():
@@ -179,40 +192,31 @@ def predict(x):
 	hits = probs > [thresholds[mod]]*len(probs)
 	return [mod, hits.sum()]
 
-#chunk random fp into jobs
-def chunks(l, n):
-	for i in xrange(0, len(l), n):
-		yield l[i:i+n]
-
 #calculate enriched target metrics and calculate background pw array
-def calculateEnrichmentT(poolcomp):
+def calculateEnrichmentT(bgpred):
 	global bsid_a
 	global positives
 	lwin = dict((el,0) for el in positives.keys())
 	avr = dict((el,0) for el in positives.keys())
 	bgpw = []
-	for i, slice in enumerate(poolcomp):
+	#for each comparison
+	for i, chunk in enumerate(bgpred):
 		printprog(samples,i,' Calculating Enriched Targets vs BG ')
+		chunk = np.matrix(map(list,chunk),dtype=np.uint8)
 		pw = dict()
-		selected = arrayFP(slice)
-		pool = Pool(processes=N_cores)  # set up resources
-		background_prediction_tasks = [[mod, selected] for mod in models.keys()] #create queue
-		jobs = pool.imap_unordered(predict, background_prediction_tasks)
-		for i, result in enumerate(jobs):
-			unip, hits = result
+		for i,mod in enumerate(sorted(models.keys())):
+			hits = np.sum(chunk[:,i])
 			if hits > 1:
-				for b in bsid_a[unip]:
+				#update count of hits for target (for average-ratio)
+				avr[mod] = avr[mod] + hits
+				for b in bsid_a[mod]:
 					try:
 						pw[b] += hits
 					except KeyError:
 						pw[b] = hits
-			#update count of hits for target (for average-ratio)
-			avr[unip] = avr[unip] + hits
 			#update times that query was larger than background (for e-ratio)
-			if positives[unip] > hits:
-				lwin[unip] +=1
-		pool.close()
-		pool.join()
+			if positives[mod] > hits:
+				lwin[mod] +=1
 		bgpw.append(pw)
 	return lwin, avr, bgpw
 	
@@ -302,9 +306,9 @@ pool.close()
 pool.join()
 
 #import background db
-poolcomp = getRandomFP(samples*len(querymatrix))
+bgpred = getRandomCompoundPredictions(samples*len(querymatrix))
 #predict for random background, calculating number of times enriched in lib
-lwin, avr, bgpw = calculateEnrichmentT(poolcomp)
+lwin, avr, bgpw = calculateEnrichmentT(bgpred)
 #calculate average ratio
 aratio = calcAR(avr,positives)
 numpreds = float(len(querymatrix))
@@ -317,6 +321,9 @@ for uniprot, hit in positives.items():
 		file.write(uniprot + '\t' + u_name[uniprot]  + '\t' +  str(hit)  + '\t' + str(1.0-(float(lwin[uniprot])/float(samples))) + '\t' + str(aratio[uniprot]) + '\n')
 print '\n Wrote Target Results to : ' + output_name
 file.close()
+
+#run pathway analysis?
+if ispwneeded() == 'n': quit()
 	
 #write to pw file
 file = open(output_name2, 'w')
@@ -330,4 +337,3 @@ for bsid, count in positivespw.items():
 	file.write('\t'.join(map(str,BSID_n))  + '\t' +  str(count)  + '\t' + str(1.0-(float(lwin[bsid])/float(samples))) + '\t' + str(aratiopw[bsid]) + '\n')
 print ' Wrote Pathway Results to : ' + output_name2
 file.close()
-
