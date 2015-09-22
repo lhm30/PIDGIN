@@ -101,19 +101,13 @@ def arrayFP(input):
 		gc.enable()
 	return np.array(outfp, dtype=np.uint8)
 
-def getRandomCompoundPredictions(needed):
+def getRandomCompoundPredictions(metric):
 	global usr, pw
-	global metric
 	conn = pymysql.connect(db='pidgin', user=usr, passwd=pw, host='localhost', port=3306)
 	cur = conn.cursor()
-	cur.execute("SELECT "+metric+" FROM preds;")
-	preds = cur.fetchall()
-	try:
-	 	bgpred = random.sample(preds,needed)
-	except ValueError:
-		bgpred = [random.choice(preds) for _ in range(needed)]
-	print ' Number of BG mols : ' + str(len(bgpred)) + ' ' * 45
-	return np.reshape(bgpred, (samples,len(querymatrix)))
+	cur.execute("SELECT "+metric+" FROM preds limit 100000;")
+	preds = np.array(cur.fetchall())[:,0]
+	return preds
 	
 #get names of uniprots
 def getUpName():
@@ -196,17 +190,22 @@ def predict(x):
 def calculateEnrichmentT(bgpred):
 	global bsid_a
 	global positives
+	print
 	lwin = dict((el,0) for el in positives.keys())
 	avr = dict((el,0) for el in positives.keys())
 	bgpw = []
 	#for each comparison
-	for i, chunk in enumerate(bgpred):
-		printprog(samples,i,' Calculating Enriched Targets vs BG ')
+	for _ in range(samples):
+		try:
+			chunk = random.sample(bgpred,len(querymatrix))
+		except ValueError:
+			chunk = [random.choice(bgpred) for r in range(len(querymatrix))]
+		printprog(samples,_,' Calculating Enriched Targets vs BG ')
 		chunk = np.matrix(map(list,chunk),dtype=np.uint8)
 		pw = dict()
 		for i,mod in enumerate(sorted(models.keys())):
 			hits = np.sum(chunk[:,i])
-			if hits > 1:
+			if hits >= 1:
 				#update count of hits for target (for average-ratio)
 				avr[mod] = avr[mod] + hits
 				for b in bsid_a[mod]:
@@ -275,7 +274,7 @@ print ' Using Class Specific Cut-off Thresholds of : ' + metric
 thresholds = dict()
 importThresholds()
 file_name = sys.argv[2]
-output_name, output_name2 = ['out_targets_enriched.txt', 'out_pathways_enriched.txt']
+output_name, output_name2 = [file_name + 'out_targets_enriched.txt', file_name + 'out_pathways_enriched.txt']
 models = trainModels()
 u_name = dict()
 getUpName()
@@ -296,7 +295,7 @@ for i, result in enumerate(jobs):
 	printprog(len(test_prediction_tasks),i,' Calculating Targets and Pathways for ' + file_name)
 	positives[mod] = hit
 	#update list of hit pw
-	if hit > 1:
+	if hit >= 1:
 		for b in bsid_a[mod]:
 			try:
 				positivespw[b] += hit
@@ -306,9 +305,10 @@ pool.close()
 pool.join()
 
 #import background db
-bgpred = getRandomCompoundPredictions(samples*len(querymatrix))
+bgpred = getRandomCompoundPredictions(metric)
 #predict for random background, calculating number of times enriched in lib
 lwin, avr, bgpw = calculateEnrichmentT(bgpred)
+bgpred = None
 #calculate average ratio
 aratio = calcAR(avr,positives)
 numpreds = float(len(querymatrix))
@@ -337,3 +337,4 @@ for bsid, count in positivespw.items():
 	file.write('\t'.join(map(str,BSID_n))  + '\t' +  str(count)  + '\t' + str(1.0-(float(lwin[bsid])/float(samples))) + '\t' + str(aratiopw[bsid]) + '\n')
 print ' Wrote Pathway Results to : ' + output_name2
 file.close()
+
