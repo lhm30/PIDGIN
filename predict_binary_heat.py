@@ -27,7 +27,10 @@ def importQuery():
     query = open(file_name).read().splitlines()
     matrix = []
     for q in query:
-        matrix.append(calcFingerprints(q))
+    	try:
+        	matrix.append(calcFingerprints(q))
+        except:
+        	print 'Problem with SMILES: ' + q
     matrix = np.array(matrix, dtype=np.uint8)
     return matrix
     

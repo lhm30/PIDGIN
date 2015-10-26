@@ -83,7 +83,7 @@ def predict(input, name):
 				#if the probability of activity is above threshold then active
 				if prob[1] >= thresholds[filename[7:-4]]:
 					hits+=1
-		results[filename[7:-4]] = float(hits)/float(len(input))
+		results[filename[7:-4]] = hits
 		#update precent finished
 		percent = (float(count)/float(t_count))*100
 		sys.stdout.write(' Performing Classification on '+name+' Molecules: %3d%%\r' % percent)
@@ -93,25 +93,24 @@ def predict(input, name):
 def calculateEnrichment(positives,background):
 	out = dict()
 	for uniprot, hits in positives.items():
+		if hits == 0:
+			out[uniprot] = 999.0
+			continue
 		try:
-			out[uniprot] = float(hits)/float(background[uniprot])
-		except:
-			if background[uniprot] == 0:
-				out[uniprot] = 0.0
-			if hits == 0:
-				out[uniprot] = 1.0
+			out[uniprot] = (float(hits)/float(len(querymatrix)))/(float(background[uniprot])/float(len(querymatrix2)))
+		except ZeroDivisionError:
+			out[uniprot] = 0.0
 	return out
 
 #main
 introMessage()
-metric = sys.argv[1]
-file_name = sys.argv[2]
-file_name2 = sys.argv[3]
+file_name = sys.argv[1]
+file_name2 = sys.argv[2]
+metric = sys.argv[3]
 print ' Using Class Specific Cut-off Thresholds of : ' + metric
 t_count = len(glob.glob('models/*.pkl'))
 print ' Total Number of Classes : ' + str(t_count)
-output_name = 'out_results_enriched.txt'
-file = open(output_name, 'w')
+outf = open(file_name + '_vs_' + file_name2 + '_out_results_enriched.txt','w')
 thresholds = dict()
 importThresholds()
 u_name = dict()
@@ -123,8 +122,9 @@ print ' Total Number of Background Molecules : ' + str(len(querymatrix2))
 positives = predict(querymatrix, file_name)
 background = predict(querymatrix2, file_name2)
 enrichedTargets = calculateEnrichment(positives,background)
-print enrichedTargets
 #write to file
+outf.write('Uniprot\tName\tHits\tBG_Hits\tOdds_Ratio\n')
 for uniprot, rate in enrichedTargets.items():
-	print uniprot + '\t' + u_name[uniprot] + '\t' + str(positives[uniprot]) + '\t' + str(background[uniprot]) + '\t' + str(rate)
-file.close()
+	if positives[uniprot] == 0: continue
+	outf.write(uniprot + '\t' + u_name[uniprot] + '\t' + str(positives[uniprot]) + '\t' + str(background[uniprot]) + '\t' + str(rate) + '\n')
+outf.close()
