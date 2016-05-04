@@ -142,7 +142,7 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     python predict_fingerprints.py threshold input.csv
     ```
     
- 9. ```ad_analysis_all.py number_of_neighbours input.csv```
+9. ```ad_analysis_all.py number_of_neighbours input.csv```
     This script takes an input of SMILES and calculates the average nearest-neighbour Tanimoto similarity of the n nearest compounds in the active training set, for each target. From here you can average the distance to a model for your input compounds, or perhaps all the models in PIDGIN etc.
     
     Example of how to run the code:
@@ -151,7 +151,7 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     python ad_analysis_all.py 1 input.csv
     ```
     
-  10. ```ad_analysis.py number_of_neighbours input.csv```
+10. ```ad_analysis.py number_of_neighbours input.csv```
     Similar to ad_analysis_all.py, but can be used for more in-depth analysis for near-neighbours. This script takes the list of smiles and retrieves the top n nearest active compound SMILES and Tanimoto's, giving a more detailed view of the distribution of compounds and which compounds are active.
     
     Example of how to run the code:
