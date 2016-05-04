@@ -74,7 +74,7 @@ def processtarget(x):
 	filename,fps = x
 	ret = [u_name[filename[7:-4]],filename[7:-4]]
 	for i,fp in enumerate(fps):
-		sim = round(sorted(zip(DataStructs.BulkTanimotoSimilarity(fp,modfps[filename])),reverse=True)[0][0],3)
+		sim = round(np.average(sorted(DataStructs.BulkTanimotoSimilarity(fp,modfps[filename]),reverse=True)[:req]),3)
 		ret.append(sim)
 	return ret
 
@@ -85,18 +85,20 @@ print 'Total Number of Classes : ' + str(len(mods))
 u_name = dict()
 getUpName()
 fps,smis = importQuery(sys.argv[1])
-of = open(sys.argv[1] + '_out_ad.txt', 'w')
-of.write('Name\tTarget\t' '\t'.join(map(str,smis)) + '\n')
+req = int(sys.argv[2])
+of = open(sys.argv[1] + '_out_ad_' + str(req) + '_nn.txt', 'w')
+of.write('Name\tTarget\t' + '\t'.join(map(str,smis)) + '\n')
 print 'Total Number of Query Molecules : ' + str(len(fps))
 usr, pw = login()
 conn = pymysql.connect(db='pidgin', user=usr, passwd=pw, host='localhost', port=3306)
 s_dict = dict()
+print 'Gathering active compounds for all targets'
 for j, mod in enumerate(mods):
-	print j,
 	cur = conn.cursor()
 	cur.execute("SELECT stdsmiles FROM actives WHERE UNIPROT = '"+mod[7:-4]+"';")
 	s_dict[mod] = np.array(cur.fetchall())[:,0]
 
+print 'Calculating fingerprints for all actives'
 modfps = dict()
 pool = Pool(processes=N_cores)  # set up resources
 jobs = pool.imap_unordered(fp_array, [[mod,smiles] for mod, smiles in s_dict.iteritems()])
@@ -104,12 +106,11 @@ for i, result in enumerate(jobs):
 	modfps[result[0]] = result[1]
 pool.close()
 pool.join()
-	
+
+print 'Calculating near-neighours for all input compounds'
 ad_tasks = [[mod,fps] for mod in sorted(mods)]
 pool = Pool(processes=N_cores)  # set up resources
 jobs = pool.imap(processtarget, ad_tasks)
 for i, result in enumerate(jobs):
 	of.write('\t'.join(map(str,result)) + '\n')
-pool.close()
-pool.join()
 of.close()
