@@ -125,12 +125,39 @@ Both utilise the Naive Bayes models created using Scikit-learn [1].
     ```
     
 7. ```predict_enriched_two_libraries.py threshold input_active_library.csv input_inactive_library.csv```
-    This script enriched targets and pathways for a library of phenotypically active compounds compared to phenotypically inactive compounds.
+    This script calculates enriched targets and pathways for a library of phenotypically active compounds compared to phenotypically inactive compounds.
     
     Example of how to run the code:
 
     ```
     python predict_enriched_two_libraries.py threshold filename_1.csv filename_2.csv
+    ```
+    
+8. ```predict_fingerprints.py threshold filename.csv```
+    This script calculates target and pathway hits and represents them as binary fingerprints in a matrix.
+    
+    Example of how to run the code:
+
+    ```
+    python predict_fingerprints.py threshold input.csv
+    ```
+    
+ 9. ```ad_analysis_all.py number_of_neighbours input.csv```
+    This script takes an input of SMILES and calculates the average nearest-neighbour Tanimoto similarity of the n nearest compounds in the active training set, for each target. From here you can average the distance to a model for your input compounds, or perhaps all the models in PIDGIN etc.
+    
+    Example of how to run the code:
+
+    ```
+    python ad_analysis_all.py 1 input.csv
+    ```
+    
+  10. ```ad_analysis.py number_of_neighbours input.csv```
+    Similar to ad_analysis_all.py, but can be used for more in-depth analysis for near-neighbours. This script takes the list of smiles and retrieves the top n nearest active compound SMILES and Tanimoto's, giving a more detailed view of the distribution of compounds and which compounds are active.
+    
+    Example of how to run the code:
+
+    ```
+    python ad_analysis.py 1 input.csv
     ```
     
     
