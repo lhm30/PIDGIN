@@ -128,5 +128,5 @@ enrichedTargets = calculateEnrichment(positives,background)
 outf.write('Uniprot\tName\tHits\tBG_Hits\tOdds_Ratio\n')
 for uniprot, rate in sorted(enrichedTargets.items(), key=operator.itemgetter(1)):
 	if positives[uniprot] == 0: continue
-	outf.write(uniprot + '\t' + u_name[uniprot] + '\t' + str(round(float(positives[uniprot])/float(len(querymatrix)),2)) + '\t' + str(round(float(background[uniprot])/float(len(querymatrix)),2) + '\t' + str(rate) + '\n')
+	outf.write(uniprot + '\t' + u_name[uniprot] + '\t' + str(round(float(positives[uniprot])/float(len(querymatrix)),2)) + '\t' + str(round(float(background[uniprot])/float(len(querymatrix)),2)) + '\t' + str(rate) + '\n')
 outf.close()
