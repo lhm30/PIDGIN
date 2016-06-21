@@ -88,6 +88,7 @@ def predict(input, name):
 		percent = (float(count)/float(t_count))*100
 		sys.stdout.write(' Performing Classification on '+name+' Molecules: %3d%%\r' % percent)
 		sys.stdout.flush()
+	print
 	return results
 
 def calculateEnrichment(positives,background):
