@@ -84,7 +84,7 @@ def predict(input, name):
 				#if the probability of activity is above threshold then active
 				if prob[1] >= thresholds[filename[7:-4]]:
 					hits+=1
-		results[filename[7:-4]] = hits
+		results[filename[7:-4]] = (float(hits)/float(len(input)))*100
 		#update precent finished
 		percent = (float(count)/float(t_count))*100
 		sys.stdout.write(' Performing Classification on '+name+' Molecules: %3d%%\r' % percent)
@@ -99,9 +99,9 @@ def calculateEnrichment(positives,background):
 			out[uniprot] = 999.0
 			continue
 		try:
-			out[uniprot] = (float(hits)/float(len(querymatrix)))/(float(background[uniprot])/float(len(querymatrix2)))
+			out[uniprot] = background[uniprot]/hits
 		except ZeroDivisionError:
-			out[uniprot] = 0.0
+			out[uniprot] = 999.0
 	return out
 
 #main
@@ -128,5 +128,5 @@ enrichedTargets = calculateEnrichment(positives,background)
 outf.write('Uniprot\tName\tHits\tBG_Hits\tOdds_Ratio\n')
 for uniprot, rate in sorted(enrichedTargets.items(), key=operator.itemgetter(1)):
 	if positives[uniprot] == 0: continue
-	outf.write(uniprot + '\t' + u_name[uniprot] + '\t' + str(round((float(positives[uniprot])/float(len(querymatrix))*100),2)) + '\t' + str(round((float(background[uniprot])/float(len(querymatrix))*100),2)) + '\t' + str(rate) + '\n')
+	outf.write(uniprot + '\t' + u_name[uniprot] + '\t' + str(round(positives[uniprot],2)) + '\t' + str(round(background[uniprot],2)) + '\t' + str(rate) + '\n')
 outf.close()
