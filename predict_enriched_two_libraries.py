@@ -99,9 +99,9 @@ def calculateEnrichment(positives,background):
 			out[uniprot] = 999.0
 			continue
 		try:
-			out[uniprot] = (float(hits)/float(len(querymatrix)))/(float(background[uniprot])/float(len(querymatrix2)))
+			out[uniprot] = (float(background[uniprot])/float(len(querymatrix2)))/(float(hits)/float(len(querymatrix)))
 		except ZeroDivisionError:
-			out[uniprot] = 0.0
+			out[uniprot] = 999.0
 	return out
 
 #main
