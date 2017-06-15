@@ -3,6 +3,9 @@ PIDGIN : Prediction IncluDinG INactivity
 [![DOI](https://zenodo.org/badge/10824/lhm30/PIDGIN.svg)](http://dx.doi.org/10.5281/zenodo.15984)
 
 
+This is a legacy version of PIDGIN, version 2 found here: https://github.com/lhm30/PIDGINv2
+
+
 Author : Lewis Mervin, lhm30@cam.ac.uk
 
 Supervisor : Dr. A. Bender
