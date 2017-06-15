@@ -4,6 +4,7 @@ PIDGIN : Prediction IncluDinG INactivity
 
 
 This is a legacy version of PIDGIN, version 2 found here: https://github.com/lhm30/PIDGINv2
+==========================================================================================
 
 
 Author : Lewis Mervin, lhm30@cam.ac.uk
